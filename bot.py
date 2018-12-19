@@ -28,7 +28,7 @@ def get_start_chats(updates):
     for i in updates['result']:
         if 'text' in i['message'] and re.search("start",i['message']['text'].lower()):
             start_chats.append(i['message']['chat']['id'])
-            print("Starting chat with", i['message']['chat']['username'])
+            print("Starting chat with", i['message']['chat']['first_name'])
     return start_chats
 
 def get_photo_chats(updates):
@@ -37,7 +37,7 @@ def get_photo_chats(updates):
         if 'photo' in i['message']:
             photo_chats.append((i['message']['chat']['id'],
                                i['message']['photo'][-1]['file_id']))
-            print(i['message']['chat']['username'], "sent an image")
+            print(i['message']['chat']['first_name'], "sent an image")
     return photo_chats
 
 def send_start_msg(chats):
@@ -80,17 +80,12 @@ def send_photo_reply(photo_chats):
     for (chat_id, file_id) in photo_chats:
         fname = "./images/{}.jpg".format(file_id)
         caption = mlcode.apply_model_to_image(fname).capitalize()
+        text = "Here's the best one I can come up with\n\n\"{}\"".format(caption)
         send = requests.get(sendurl, params={'chat_id':chat_id, 
-                                        'text':"Here's the best caption I can come up with"})
+                                        'text':text})
         while send.status_code!=200:
             send = requests.get(sendurl, params={'chat_id':chat_id, 
-                                        'text':"Here's the best caption I can come up with"})
-        
-        send = requests.get(sendurl, params={'chat_id':chat_id, 
-                                        'text':'"""\n{}\n"""'.format(caption)})
-        while send.status_code!=200:
-            send = requests.get(sendurl, params={'chat_id':chat_id, 
-                                        'text':'"""\n{}\n"""'.format(caption)})
+                                        'text':text})
     return 'ok'
 
 def run():
