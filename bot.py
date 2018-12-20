@@ -23,7 +23,7 @@ def last_update_id(res):
     return res['result'][-1]['update_id']
 
 def is_starter(msg):
-    starter = ["hey", "hi", "hello", "hy", "start", "strt", "begin", "init"]
+    starter = ["hey", "hello", "start", "strt", "begin", "init"]
     for s in starter:
         if s in msg: return True
     else: return False
@@ -33,7 +33,11 @@ def get_start_chats(updates):
     for i in updates['result']:
         if 'text' in i['message'] and is_starter(i['message']['text'].lower()):
             start_chats.append(i['message']['chat']['id'])
-            print("Starting chat with", i['message']['chat']['first_name'])
+            if i['message']['chat']['type']=='private':
+                print("Starting chat with", i['message']['chat']['first_name'])
+            else:
+                print("Starting chat with", i['message']['chat']['title'])
+
     return start_chats
 
 def get_photo_chats(updates):
@@ -41,8 +45,11 @@ def get_photo_chats(updates):
     for i in updates['result']:
         if 'photo' in i['message']:
             photo_chats.append((i['message']['chat']['id'],
-                               i['message']['photo'][-1]['file_id']))
-            print(i['message']['chat']['first_name'], "sent an image")
+                               i['message']['photo'][-1]['file_id'], i['message']['message_id']))
+            if i['message']['chat']['type']=='private':
+                print(i['message']['chat']['first_name'], "sent an image")
+            else:
+                print(i['message']['chat']['title'], "sent an image")
     return photo_chats
 
 def send_start_msg(chats):
@@ -81,7 +88,7 @@ def get_save_file(file_id):
 def send_photo_reply(photo_chats):
     sendurl = baseurl + 'sendMessage'
     msg = "Image recieved!\nThinking of a caption..."
-    for (chat_id, file_id) in photo_chats:
+    for (chat_id, file_id, msg_id) in photo_chats:
         while True:
             try:
                 sleep(1)
@@ -93,7 +100,7 @@ def send_photo_reply(photo_chats):
                 break
             except: pass
 
-    for (chat_id, file_id) in photo_chats:
+    for (chat_id, file_id, msg_id) in photo_chats:
         fname = "./images/{}.jpg".format(file_id)
         caption = mlcode.apply_model_to_image(fname).capitalize()
         text = "Here's the best one I can come up with\n\n\"{}\"".format(caption)
@@ -101,17 +108,18 @@ def send_photo_reply(photo_chats):
             try:
                 sleep(1)
                 send = requests.get(sendurl, params={'chat_id':chat_id,
-                                        'text':text})
+                                        'text':text, 'reply_to_message_id':msg_id})
                 while send.status_code!=200:
                     sleep(1)
                     send = requests.get(sendurl, params={'chat_id':chat_id,
-                                        	'text':text})
+                                        	'text':text, 'reply_to_message_id':msg_id})
                 break
             except: pass
         print('Responded with caption')
     return 'ok'
 
 def run():
+    print("\nStarting the Bot...")
     offset = None
     while True:
         try:
@@ -122,6 +130,7 @@ def run():
             photo_chats = get_photo_chats(updates)
             send_photo_reply(photo_chats)
         except KeyboardInterrupt:
+            print("\nStopping the Bot...")
             break
 
 run()
