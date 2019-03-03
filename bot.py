@@ -4,7 +4,10 @@ import shutil
 from time import sleep
 import mlcode
 
-token = "742399582:AAHY_IvizrRsmjAnLkv_bCcxtm8kHbaYl2g"
+# secret token code stored in a text file named secret.txt
+with open("secret.txt", "r") as fh:
+    token = fh.read().strip()
+    
 baseurl = "https://api.telegram.org/bot{}/".format(token)
 
 def get_updates(offset = None):
