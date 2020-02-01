@@ -1,12 +1,14 @@
 import os
 import numpy as np
-import tensorflow as tf
-from tensorflow.contrib import keras
+import tensorflow.compat.v1 as tf
+from tensorflow.compat.v1 import keras
 K = keras.backend
 L = keras.layers
 from pickle import load
 from imageio import imread
 import utils
+
+tf.disable_eager_execution()
 
 #dictionary of vocabulary indices
 with open('./model_dat/vocab.bin', 'rb') as fh:
@@ -27,7 +29,7 @@ LOGIT_BOTTLENECK = 120
 pad_idx = vocab[PAD]
 IMG_SIZE = 299
 
-#starting new tf geaph
+#starting new tf graph
 tf.reset_default_graph()    # close current session
 K.clear_session()   # reset graph
 s = tf.InteractiveSession()    # create new session
