@@ -135,5 +135,7 @@ def run():
         except KeyboardInterrupt:
             print("\nStopping the Bot...")
             break
+        except:
+            continue
 
 run()
